@@ -4,7 +4,7 @@ A modern and responsive e-commerce web app built with Next.js 14, Tailwind CSS, 
 
 ## 🔗 Live Demo
 
-👉 [View Live](https://next-ecommerce.vercel.app)
+👉 [View Live](https://e-commerce-ivory-kappa-86.vercel.app/)
 
 ## 📦 Features
 
