@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect, useState } from "react";
+import {useEffect, useState , Suspense} from "react";
 import { useRouter, useSearchParams } from "next/navigation"; 
 import Sidebar from "@/components/SidebarFilters";
 import ProductCard from "@/components/ProductCard";
@@ -81,21 +81,16 @@ const allProducts: Product[] = [
     category: "Clothing",
   },
 ];
-
-export default function Home() {
+function PageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { query } = useSearchStore();
 
-  // Initialize from URL
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || "All"
   );
-  const [price, setPrice] = useState(
-    Number(searchParams.get("price")) || 1000
-  );
+  const [price, setPrice] = useState(Number(searchParams.get("price")) || 1000);
 
-  // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams();
 
@@ -111,11 +106,9 @@ export default function Home() {
       params.set("search", query);
     }
 
-    // Update URL without full reload
     router.push(`/?${params.toString()}`);
-  }, [selectedCategory, price, query]);
+  }, [selectedCategory, price, query, router]);
 
-  // Filtering logic
   const filteredProducts = allProducts.filter((product) => {
     const matchCategory =
       selectedCategory === "All" ||
@@ -132,7 +125,6 @@ export default function Home() {
 
   return (
     <div className="flex flex-col md:flex-row gap-6 p-4">
-      {/* Filters Sidebar */}
       <Sidebar
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
@@ -140,7 +132,6 @@ export default function Home() {
         setPrice={setPrice}
       />
 
-      {/* Main Content */}
       <div className="flex-1">
         <h1 className="text-xl font-semibold mb-4">Product Listing</h1>
         <ProductCard products={filteredProducts} />
@@ -151,5 +142,13 @@ export default function Home() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="p-4">Loading filters...</div>}>
+      <PageContent />
+    </Suspense>
   );
 }
