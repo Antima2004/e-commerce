@@ -1,14 +1,12 @@
 "use client";
 
-import {useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation"; 
-import Sidebar from "@/components/SidebarFilters";
-import ProductCard from "@/components/ProductCard";
-import { useSearchStore } from "@/store/useSearchStore";
-import { Product } from "@/types";
+import { use } from "react";
+import Image from "next/image";
+import { notFound, useRouter } from "next/navigation";
 
-const allProducts: Product[] = [
-   {
+// Dummy product data
+const products = [
+  {
     id: 1,
     title: "Running Shoes",
     price: 99,
@@ -82,73 +80,69 @@ const allProducts: Product[] = [
   },
 ];
 
-export default function Home() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const { query } = useSearchStore();
+export default function ProductDetail({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const router = useRouter(); // ✅ use router
+  const { id } = use(params);
 
-  // Initialize from URL
-  const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || "All"
-  );
-  const [price, setPrice] = useState(
-    Number(searchParams.get("price")) || 1000
-  );
+  const product = products.find((p) => p.id === parseInt(id));
 
-  // Update URL when filters change
-  useEffect(() => {
-    const params = new URLSearchParams();
-
-    if (selectedCategory && selectedCategory !== "All") {
-      params.set("category", selectedCategory);
-    }
-
-    if (price !== 1000) {
-      params.set("price", price.toString());
-    }
-
-    if (query) {
-      params.set("search", query);
-    }
-
-    // Update URL without full reload
-    router.push(`/?${params.toString()}`);
-  }, [selectedCategory, price, query]);
-
-  // Filtering logic
-  const filteredProducts = allProducts.filter((product) => {
-    const matchCategory =
-      selectedCategory === "All" ||
-      product.category.toLowerCase() === selectedCategory.toLowerCase();
-
-    const matchPrice = product.price <= price;
-
-    const matchSearch = product.title
-      .toLowerCase()
-      .includes(query.toLowerCase());
-
-    return matchCategory && matchPrice && matchSearch;
-  });
+  if (!product) return notFound();
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 p-4">
-      {/* Filters Sidebar */}
-      <Sidebar
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        price={price}
-        setPrice={setPrice}
-      />
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      {/* ✅ Back Button */}
+      <button
+        onClick={() => router.back()}
+        className="mb-6 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded"
+      >
+        ← Back
+      </button>
 
-      {/* Main Content */}
-      <div className="flex-1">
-        <h1 className="text-xl font-semibold mb-4">Product Listing</h1>
-        <ProductCard products={filteredProducts} />
-        {filteredProducts.length === 0 && (
-          <p className="text-gray-500 mt-4">
-            No products found for selected filters.
+      <div className="grid md:grid-cols-2 gap-8">
+        {/* Image */}
+        <div className="relative w-full h-96">
+          <Image
+            src={product.image}
+            alt={product.title}
+            fill
+            className="object-cover rounded-md"
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority
+          />
+        </div>
+
+        {/* Details */}
+        <div>
+          <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
+          <p className="text-2xl text-blue-700 font-semibold mb-2">
+            ${product.price}
           </p>
-        )}
+          <p className="mb-4 text-gray-700">{product.description}</p>
+          <p className="mb-4 text-sm text-gray-500">
+            Category: <span className="capitalize">{product.category}</span>
+          </p>
+
+          <div className="flex items-center gap-4">
+            <label htmlFor="qty" className="text-sm font-medium">
+              Qty:
+            </label>
+            <input
+              type="number"
+              min={1}
+              defaultValue={1}
+              id="qty"
+              className="w-20 px-3 py-1 border rounded"
+            />
+          </div>
+
+          <button className="mt-6 bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 transition">
+            Add to Cart
+          </button>
+        </div>
       </div>
     </div>
   );

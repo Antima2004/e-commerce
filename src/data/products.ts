@@ -1,14 +1,7 @@
-"use client";
+// src/data/products.ts
 
-import {useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation"; 
-import Sidebar from "@/components/SidebarFilters";
-import ProductCard from "@/components/ProductCard";
-import { useSearchStore } from "@/store/useSearchStore";
-import { Product } from "@/types";
-
-const allProducts: Product[] = [
-   {
+export const products = [
+  {
     id: 1,
     title: "Running Shoes",
     price: 99,
@@ -81,75 +74,3 @@ const allProducts: Product[] = [
     category: "Clothing",
   },
 ];
-
-export default function Home() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const { query } = useSearchStore();
-
-  // Initialize from URL
-  const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || "All"
-  );
-  const [price, setPrice] = useState(
-    Number(searchParams.get("price")) || 1000
-  );
-
-  // Update URL when filters change
-  useEffect(() => {
-    const params = new URLSearchParams();
-
-    if (selectedCategory && selectedCategory !== "All") {
-      params.set("category", selectedCategory);
-    }
-
-    if (price !== 1000) {
-      params.set("price", price.toString());
-    }
-
-    if (query) {
-      params.set("search", query);
-    }
-
-    // Update URL without full reload
-    router.push(`/?${params.toString()}`);
-  }, [selectedCategory, price, query]);
-
-  // Filtering logic
-  const filteredProducts = allProducts.filter((product) => {
-    const matchCategory =
-      selectedCategory === "All" ||
-      product.category.toLowerCase() === selectedCategory.toLowerCase();
-
-    const matchPrice = product.price <= price;
-
-    const matchSearch = product.title
-      .toLowerCase()
-      .includes(query.toLowerCase());
-
-    return matchCategory && matchPrice && matchSearch;
-  });
-
-  return (
-    <div className="flex flex-col md:flex-row gap-6 p-4">
-      {/* Filters Sidebar */}
-      <Sidebar
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        price={price}
-        setPrice={setPrice}
-      />
-
-      {/* Main Content */}
-      <div className="flex-1">
-        <h1 className="text-xl font-semibold mb-4">Product Listing</h1>
-        <ProductCard products={filteredProducts} />
-        {filteredProducts.length === 0 && (
-          <p className="text-gray-500 mt-4">
-            No products found for selected filters.
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
